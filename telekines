@@ -1,8 +1,3 @@
---[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
--- https://www.youtube.com/c/DOXPLOV/ subscribe for more rare scripts
-
 function sandbox(var,func)
 	local env = getfenv(func)
 	local newenv = setmetatable({},{
@@ -34,7 +29,7 @@ Part11 = Instance.new("Part")
 Script12 = Instance.new("Script")
 Part13 = Instance.new("Part")
 Script14 = Instance.new("Script")
-Tool0.Name = "Telekinesis Gun"
+Tool0.Name = "Baba ucuruyor"
 Tool0.Parent = mas
 Tool0.CanBeDropped = false
 Part1.Name = "Handle"
