@@ -1,0 +1,1245 @@
+local CarParts = {"Wheel","Engine","radiator","hood","back","grill","frontbumper","rightlight","leftlight"}
+local FoodParts = {"banana","Apple","Bread","Burger","Garlic","Union","Onion"}
+local MiscParts = {"OilCan","WaterCan","GasCan","DieselCan"}
+local ValuableParts = {"RadioactiveBarrel"}
+local WeaponParts = {"Pistol","Mac10","AK47"}
+
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/Awakenchan/Misc-Release/main/linoracolor'))()
+local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
+
+Library:Notify("Hello vip user enjoy the script.", 10)
+
+--//Variables
+local camera = game.Workspace.CurrentCamera
+local Camera = game.Workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+local UIP = game:GetService("UserInputService")
+local Player = game.Players.LocalPlayer
+local ReplicatedStorage = game.ReplicatedStorage
+--//
+
+local Window = Library:CreateWindow({
+    Title = "blaze.wth | VIP",
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
+
+local function position(Instance,cframe)
+    local args = {
+        [1] = Instance,
+        [2] = cframe
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("movebuilding"):FireServer(unpack(args))   
+end
+
+local function GetItemNotOccupied(name)
+    for i,v in pairs(game.Workspace:GetChildren()) do
+        if v.Name == name then
+            if (v:FindFirstChild("target")) and v.target.Value == nil then
+                return v
+            end
+        end
+    end
+end
+
+local function spawnballoon(Position,object)
+    local args = {
+        [1] = game:GetService("ReplicatedStorage").Assets.RareItems["120"].BalloonGun,
+        [2] = object,
+        [3] = Position,
+        [4] = Vector3.yAxis
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_CustomHit"):FireServer(unpack(args))            
+end
+
+local function color(Instance,new)
+    local args = {
+        [1] = game:GetService("ReplicatedStorage").Assets.RareItems["10"]["Blue PaintballGun"],
+        [2] = Instance,
+        [3] = new
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_CustomHit"):FireServer(unpack(args))  
+end
+
+local function GetCurrentVehicle()
+    if Player.Character.Humanoid.SeatPart then
+        if Player.Character.Humanoid.SeatPart.Parent:FindFirstChild("Body") then
+            return Player.Character.Humanoid.SeatPart.Parent
+        end
+    end
+end
+
+local SelectedCarParts = {}
+local SelectedFoodParts = {}
+local SelectedMiscParts = {}
+local SelectedWeaponParts = {}
+local SelectedPlayer = ""
+local FarmCaps = false
+local AutoKillMutants = false
+local WalkspeedAmount = 10
+local ColorPicked = Color3.new(0,0,1)
+local IgnoreShop = false
+local FlightSpeed = 5
+
+local Tabs = {
+    Self = Window:AddTab('Self'),
+    Items = Window:AddTab('Items'),
+    Trolling = Window:AddTab('Trolling'),
+    Misc = Window:AddTab('Misc'),
+    ['UI Settings'] = Window:AddTab('UI Settings'),
+}
+
+if not string.find(identifyexecutor(),"Solara") then
+    local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')MenuGroup:AddButton('Unload', function()Library:Unload() end)MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' }) Library.ToggleKeybind = Options.MenuKeybind; ThemeManager:SetLibrary(Library)SaveManager:SetLibrary(Library)SaveManager:IgnoreThemeSettings()SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })ThemeManager:SetFolder('aspect')SaveManager:SetFolder('aspect/SouthBronx')SaveManager:BuildConfigSection(Tabs['UI Settings'])ThemeManager:ApplyToTab(Tabs['UI Settings'])SaveManager:LoadAutoloadConfig()
+end
+
+local Self_Movement = Tabs.Self:AddLeftGroupbox('Movement')
+local Self_Usefull = Tabs.Self:AddRightGroupbox('Other')
+
+local Trolling_Target = Tabs.Trolling:AddLeftGroupbox('Target')
+local Trolling_AllPlayers = Tabs.Trolling:AddRightGroupbox('All Players')
+local Trolling_Tools = Tabs.Trolling:AddLeftGroupbox('Server Sided Tools')
+local Trolling_Funny = Tabs.Trolling:AddRightGroupbox('Funny')
+
+local Misc_World = Tabs.Misc:AddLeftGroupbox('World')
+local Misc_Vehicles = Tabs.Misc:AddRightGroupbox('Vehicles')
+local Items_Bring = Tabs.Items:AddLeftGroupbox("Bring items:")
+local Items_WeaponMods = Tabs.Items:AddRightGroupbox('Weapon Mods')
+local Items_BringOther = Tabs.Items:AddRightGroupbox('Bring Other Items')
+
+--[[Misc_Vehicles:AddButton({
+    Text = "Build Sedan",
+    DoubleClick = false,
+    Tooltip = "Wont place the doors.",
+    Func = function()
+       for i,v in pairs(game.Workspace.Sedan.Wheels:GetChildren()) do
+            local Wheel = GetItemNotOccupied("Wheel")
+            if Wheel then
+                local DaPart = Wheel:FindFirstChildWhichIsA("Part") or Wheel:FindFirstChildWhichIsA("MeshPart") or Wheel:FindFirstChildWhichIsA("UnionOperation")
+
+                local args = {
+                    [1] = DaPart,
+                    [2] = v,
+                    [3] = true,
+                    [4] = v.CarPartSpace
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+            end
+        end
+
+        local Engine = GetItemNotOccupied("Engine")
+        if Engine then
+            local DaPart = Engine:FindFirstChildWhichIsA("Part") or Engine:FindFirstChildWhichIsA("MeshPart") or Engine:FindFirstChildWhichIsA("UnionOperation")
+            local args = {
+                [1] = DaPart,
+                [2] = game.Workspace.Sedan.Misc.details.other.Engine.Model["Object_43"],
+                [3] = true,
+                [4] = game.Workspace.Sedan.Misc.details.other.Engine.Part.CarPartSpace
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+        end
+        local Radiator = GetItemNotOccupied("radiator")
+        if Radiator then
+            local DaPart = Radiator:FindFirstChildWhichIsA("Part") or Radiator:FindFirstChildWhichIsA("MeshPart") or radiator:FindFirstChildWhichIsA("UnionOperation")
+            local args = {
+                [1] = DaPart,
+                [2] = game.Workspace.Sedan.Misc.details.other.radiator.Model["Object_59"],
+                [3] = true,
+                [4] = game.Workspace.Sedan.Misc.details.other.radiator.Part.CarPartSpace
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+        end
+
+        local LeftLight = GetItemNotOccupied("leftlight")
+        if LeftLight then
+            local DaPart = LeftLight:FindFirstChildWhichIsA("Part") or LeftLight:FindFirstChildWhichIsA("MeshPart") or LeftLight:FindFirstChildWhichIsA("UnionOperation")
+            local args = {
+                [1] = DaPart,
+                [2] = game.Workspace.Sedan.Misc.details.other.leftlight.Model["kk.025"],
+                [3] = true,
+                [4] = game.Workspace.Sedan.Misc.details.other.leftlight.Part.CarPartSpace
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+        end
+        local RightLight = GetItemNotOccupied("leftlight")
+        if RightLight then
+            local DaPart = RightLight:FindFirstChildWhichIsA("Part") or RightLight:FindFirstChildWhichIsA("MeshPart") or RightLight:FindFirstChildWhichIsA("UnionOperation")
+            local args = {
+                [1] = DaPart,
+                [2] = game.Workspace.Sedan.Misc.details.other.rightlight.Model["kk.057"],
+                [3] = true,
+                [4] = game.Workspace.Sedan.Misc.details.other.rightlight.Part.CarPartSpace
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+        end
+        local Hood = GetItemNotOccupied("hood")
+        if Hood then
+            local DaPart = Hood:FindFirstChildWhichIsA("Part") or Hood:FindFirstChildWhichIsA("MeshPart") or Hood:FindFirstChildWhichIsA("UnionOperation")
+            local args = {
+                [1] = DaPart,
+                [2] = game.Workspace.Sedan.Misc.details.openable.hood.Model.Union,
+                [3] = true,
+                [4] = game.Workspace.Sedan.Misc.details.openable.hood.Part.dragweld
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+        end
+        local Back = GetItemNotOccupied("back")
+        if Back then
+            local DaPart = Back:FindFirstChildWhichIsA("Part") or Back:FindFirstChildWhichIsA("MeshPart") or Back:FindFirstChildWhichIsA("UnionOperation")
+            local args = {
+                [1] = DaPart,
+                [2] = game.Workspace.Sedan.Misc.details.openable.back.Model.Union,
+                [3] = true,
+                [4] = game.Workspace.Sedan.Misc.details.openable.back.Part.dragweld
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("place"):InvokeServer(unpack(args))
+        end
+    end
+})
+--]]
+
+SedanFuelToggle = Misc_Vehicles:AddToggle('InfAmmo',{
+    Text = "Fuel Sedan",
+    DoubleClick = false,
+    Tooltip = "Endlessly puts fuel in the sedan!",
+    Callback = function(Value)
+        SedanFuel = Value
+
+        if SedanFuel == true then
+            VanFuelToggle:SetValue(false)
+        end
+
+        while SedanFuel == true do
+            local Sedan = game.Workspace:FindFirstChild("Sedan")
+            if Sedan then
+                local args = {
+                    [1] = Sedan:WaitForChild("Misc"):WaitForChild("tank"):WaitForChild("main"):WaitForChild("tank"),
+                    [2] = game.ReplicatedStorage.Liquids.GasCan.main.tank
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("fill"):FireServer(unpack(args))
+            end
+
+            wait(0.25)
+        end
+    end
+})
+
+VanFuelToggle = Misc_Vehicles:AddToggle('InfAmmo',{
+    Text = "Fuel Van",
+    DoubleClick = false,
+    Tooltip = "Endlessly puts fuel in the van!",
+    Callback = function(Value)
+        VanFuel = Value
+
+        if VanFuel == true then
+            SedanFuelToggle:SetValue(false)
+        end
+
+        while VanFuel == true do
+            local Van = game.Workspace:FindFirstChild("Van")
+            if Van then
+                local args = {
+                    [1] = Van:WaitForChild("Misc"):WaitForChild("tank"):WaitForChild("main"):WaitForChild("tank"),
+                    [2] = game.ReplicatedStorage.Liquids.GasCan.main.tank
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("fill"):FireServer(unpack(args))
+            end
+
+            wait(0.25)
+        end
+    end
+})
+
+Items_WeaponMods:AddToggle('InfAmmo',{
+    Text = "Infinity Ammo",
+    DoubleClick = false,
+    Tooltip = "Infinity Ammo/Mag",
+    Callback = function(Value)
+        InfAmmo = Value
+
+        while InfAmmo == true do
+            for i,v in pairs(game.Workspace:GetChildren()) do
+                if v:GetAttribute("CurrentMagSize") then
+                    v:SetAttribute("CurrentMagSize",math.huge)
+                    v:SetAttribute("MagSize",math.huge)
+                    v:SetAttribute("MaxBulletsAmount",math.huge)
+                end
+            end
+
+            if game.Workspace:FindFirstChild("BuildingItemStorage") then
+                for i,v in pairs(game.Workspace:FindFirstChild("BuildingItemStorage"):GetChildren()) do
+                    if v:GetAttribute("CurrentMagSize") then
+                        v:SetAttribute("CurrentMagSize",math.huge)
+                        v:SetAttribute("MagSize",math.huge)
+                        v:SetAttribute("MaxBulletsAmount",math.huge)
+                    end
+                end
+            end
+
+            wait(1)
+        end
+
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if v:GetAttribute("CurrentMagSize") then
+                v:SetAttribute("CurrentMagSize",30)
+                v:SetAttribute("MagSize",30)
+                v:SetAttribute("MaxBulletsAmount",30)
+            end
+        end
+
+        if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace:FindFirstChild("BuildingItemStorage"):GetChildren()) do
+                if v:GetAttribute("CurrentMagSize") then
+                    v:SetAttribute("CurrentMagSize",30)
+                    v:SetAttribute("MagSize",30)
+                    v:SetAttribute("MaxBulletsAmount",30)
+                end
+            end
+        end
+    end
+})
+
+--[[
+Items_WeaponMods:AddButton({
+    Text = "Instant Reload",
+    DoubleClick = false,
+    Tooltip = nil,
+    Func = function()
+        for i,v in pairs(require(game.ReplicatedStorage.Tables.GunTable)) do
+            v.ReloadTime = 0
+        end
+        Library:Notify("Applied: Instant Reload!",3)
+
+        for i,v in pairs(require(game.ReplicatedStorage.Tables.GunTable)) do
+            print(v.ReloadTime)
+        end
+    end
+})
+--]]
+
+--[[
+Items_WeaponMods:AddButton({
+    Text = "No Recoil",
+    DoubleClick = false,
+    Tooltip = nil,
+    Func = function()
+        for i,v in pairs(require(game.ReplicatedStorage.Tables.GunTable)) do
+            v.MaxRecoilY = 0
+            v.MaxRecoilZ = 0
+            v.MinRecoilX = 0
+            v.MinRecoilZ = 0
+        end
+        Library:Notify("Applied: No Recoil!",3)
+    end
+})
+--]]
+
+Trolling_Funny:AddToggle('InfStamina',{
+    Text = "Play Loud Sound",
+    DoubleClick = false,
+    Tooltip = "Ouch my ears",
+    Callback = function(Value)
+        PlayCrash = Value
+
+        while PlayCrash == true do
+            local sound = game.SoundService.crash
+            game.ReplicatedStorage.playsound:FireServer(sound,10)
+            wait(0.5)
+        end
+    end
+})
+
+Trolling_Funny:AddButton({
+    Text = "Kill Server",
+    DoubleClick = false,
+    Tooltip = nil,
+    Func = function()
+        while true do
+            task.spawn(function()
+                game.ReplicatedStorage.breaksomething:InvokeServer(Player.Character:GetPivot())
+            end)
+            task.wait()
+        end
+    end
+})
+
+Self_Movement:AddToggle('InfStamina',{
+    Text = "Infinity Stamina",
+    DoubleClick = false,
+    Tooltip = "Self Explanitory.",
+    Callback = function(Value)
+        InfStamina = Value
+
+        while InfStamina == true do
+            if (Player.Character) and Player.Character:FindFirstChild("Humanoid") then
+                Player.Character.Humanoid:SetAttribute("Stamina",1)
+            end
+
+            wait(0.1)
+        end
+    end
+})
+
+Self_Movement:AddToggle('InfStamina',{
+    Text = "Flight",
+    DoubleClick = false,
+    Tooltip = "Flight.",
+    Callback = function(Value)
+        Flight = Value
+
+        while Flight == true do
+            task.wait()
+        
+            if (Player.Character) and Player.Character:FindFirstChild("HumanoidRootPart") and FarmCaps == false then
+                if Player.Character.Humanoid.Sit == false then
+                    Player.Character.Humanoid:ChangeState("Freefall")
+            
+                    if UIP:IsKeyDown(Enum.KeyCode.Space) then
+                        Player.Character:PivotTo(Player.Character:GetPivot() + Vector3.new(0,5 /20,0))
+                    end 
+        
+                    if UIP:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        Player.Character:PivotTo(Player.Character:GetPivot() - Vector3.new(0,5 /20,0))
+                    end 
+                    
+                    Player.Character:PivotTo(Player.Character:GetPivot() + Player.Character.Humanoid.MoveDirection /40 * FlightSpeed)
+                    Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+                end
+            end
+        end
+    end
+})
+
+Self_Movement:AddToggle('InfStamina',{
+    Text = "Walk Speed",
+    DoubleClick = false,
+    Tooltip = "Walk faster.",
+    Callback = function(Value)
+        Walkspeed = Value
+
+        while Walkspeed == true do
+            if (Player.Character) and Player.Character:FindFirstChild("Humanoid") then
+                Player.Character.Humanoid.WalkSpeed = WalkspeedAmount
+            end
+
+            wait(0.1)
+        end
+
+        if (Player.Character) and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.WalkSpeed = 10
+        end
+    end
+})
+
+Self_Movement:AddSlider('WalkSpeed', {
+    Text = 'WalkSpeed',
+    Default = 10,
+    Min = 10,
+    Max = 500,
+    Rounding = 1,
+    Compact = false,
+    Callback = function(value)
+        WalkspeedAmount = tonumber(value)
+    end
+})
+
+Self_Movement:AddSlider('WalkSpeed', {
+    Text = 'FlightSpeed',
+    Default = 5,
+    Min = 1,
+    Max = 100,
+    Rounding = 1,
+    Compact = false,
+    Callback = function(value)
+        FlightSpeed = tonumber(value)
+    end
+})
+
+local Buildings = {}
+local SelectedBuilding = game:GetService("ReplicatedStorage").buldings.Shop
+for i,v in pairs(game:GetService("ReplicatedStorage").buldings:GetChildren()) do
+    table.insert(Buildings,v.Name)
+end
+
+Misc_World:AddDropdown('Players', {
+    Values = Buildings,
+    Default = "Shop",
+    Multi = false, 
+    Text = 'Select Building:',   
+    Tooltip = nil, 
+    Callback = function(option)
+        SelectedBuilding = game:GetService("ReplicatedStorage").buldings:FindFirstChild(option)
+    end
+})
+
+Misc_World:AddButton({
+    Text = "Spawn Selected Building",
+    DoubleClick = false,
+    Tooltip = "Server Sided!",
+    Func = function()
+        if (SelectedBuilding) then
+            if game.Workspace.Configuration.host.Value == Player then
+                Library:Notify("U are the host!", 5)
+                game:GetService("ReplicatedStorage").spawnbuilding:FireServer(
+                    SelectedBuilding,
+                    game.Players.LocalPlayer.Character:GetPivot() + game.Players.LocalPlayer.Character:GetPivot().LookVector * 50 - Vector3.new(0,5,0)
+                )
+            else
+                Library:Notify("Looks like ur not the server host!, I recommend u playing solo!", 10)
+            end
+        end
+    end
+})
+
+Misc_World:AddButton({
+    Text = "Delete Shop Turrets",
+    DoubleClick = false,
+    Tooltip = "Deletes all loaded in shops turrets, and u can steal!",
+    Func = function()
+        for i,v in pairs(workspace.modelspoint:GetDescendants()) do
+            if v.Name == "building" and v:IsA("Model") then
+                for i,v in pairs(v:GetChildren()) do
+                    if v.Name == "Turret" or v.Name == "Turret2" then
+                        game:GetService("ReplicatedStorage").teleport:FireServer(v,Vector3.new(0,0,0))   
+                    end
+                end
+            end
+        end
+
+        for i,v in pairs(workspace.buildings:GetChildren()) do
+            if v.Name == "Shop" and v:IsA("Model") then
+                for i,v in pairs(v:GetChildren()) do
+                    if v.Name == "Turret" or v.Name == "Turret2" then
+                        game:GetService("ReplicatedStorage").teleport:FireServer(v,Vector3.new(0,0,0))   
+                    end
+                end
+            end
+        end
+    end
+})
+
+Trolling_Tools:AddLabel('Color'):AddColorPicker('ColorPicker', {
+    Default = Color3.new(0, 0, 1),
+    Title = 'Some color',
+    Transparency = 0,
+
+    Callback = function(Value)
+        ColorPicked = Value
+    end
+})
+
+Trolling_Tools:AddButton({
+    Text = "Color Tool",
+    DoubleClick = false,
+    Tooltip = "U wont be able to color everything.",
+    Func = function()
+        local ColorTool = Instance.new("Tool",Player.Backpack)
+        ColorTool.Name = "Color"
+        ColorTool.RequiresHandle = false
+
+        ColorTool.Activated:Connect(function()
+            if Player:GetMouse().Target then
+                color(Player:GetMouse().Target,ColorPicked)
+            end   
+        end)      
+    end
+})
+
+Trolling_Tools:AddButton({
+    Text = "Balloon Tool",
+    DoubleClick = false,
+    Tooltip = "Use the tool to spawn balloons.",
+    Func = function()
+        local BalloonTool = Instance.new("Tool",Player.Backpack)
+        BalloonTool.Name = "Spawn Balloon"
+        BalloonTool.RequiresHandle = false
+        BalloonTool.Activated:Connect(function()
+            if Player:GetMouse().Target then
+                spawnballoon(Player:GetMouse().Hit.Position,Player:GetMouse().Target)
+            end
+        end)
+    end
+})
+
+Trolling_Tools:AddButton({
+    Text = "Cactus Tool",
+    DoubleClick = false,
+    Tooltip = "Use the tool to spawn cactuses.",
+    Func = function()
+        local CactusTool = Instance.new("Tool",Player.Backpack)
+        CactusTool.Name = "Spawn Cactus"
+        CactusTool.RequiresHandle = false
+        CactusTool.Activated:Connect(function()
+            game.ReplicatedStorage.breaksomething:InvokeServer(Player:GetMouse().Hit)
+        end)
+    end
+})
+
+Trolling_Tools:AddButton({
+    Text = "Delete Tool",
+    DoubleClick = false,
+    Tooltip = "This could probally bug and delete unwanted stuff!",
+    Func = function()
+        local DeleteTool = Instance.new("Tool",Player.Backpack)
+        DeleteTool.Name = "Delete"
+        DeleteTool.RequiresHandle = false
+        DeleteTool.Activated:Connect(function()
+            if Player:GetMouse().Target then
+                if Player:GetMouse().Target:FindFirstAncestorOfClass("Model") then
+                    game:GetService("ReplicatedStorage").teleport:FireServer(Player:GetMouse().Target:FindFirstAncestorOfClass("Model"),Vector3.new(math.huge,0,math.huge))
+                end
+            end
+        end)
+    end
+})
+
+Items_Bring:AddDropdown('Players', {
+    Values = CarParts,
+    Default = "NONE",
+    Multi = true, 
+    Text = 'Select Car Parts',   
+    Tooltip = nil, 
+    Callback = function(option)
+        SelectedCarParts = option
+    end
+})
+
+Items_Bring:AddDropdown('Players', {
+    Values = FoodParts,
+    Default = "NONE",
+    Multi = true, 
+    Text = 'Select Food Parts',   
+    Tooltip = nil, 
+    Callback = function(option)
+        SelectedFoodParts = option
+    end
+})
+
+Items_Bring:AddDropdown('Players', {
+    Values = MiscParts,
+    Default = "NONE",
+    Multi = true, 
+    Text = 'Select Misc Parts',   
+    Tooltip = nil, 
+    Callback = function(option)
+        SelectedMiscParts = option
+    end
+})
+
+Items_Bring:AddDropdown('Players', {
+    Values = WeaponParts,
+    Default = "NONE",
+    Multi = true, 
+    Text = 'Select Weapon Parts',   
+    Tooltip = nil, 
+    Callback = function(option)
+        SelectedWeaponParts = option
+    end
+})
+
+Items_Bring:AddToggle('CFrameSpeed', {
+    Text = 'Ignore Items From Shops',
+    Default = false,
+    Tooltip = "Ignores items from shops so u dont get shot.",
+    Callback = function(Value)
+        IgnoreShop = Value
+    end
+})
+
+Items_Bring:AddButton({
+    Text = "Bring Selected Car Items",
+    DoubleClick = false,
+    Tooltip = "Brings the selected car parts.",
+    Func = function()
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if SelectedCarParts[v.Name] == true then
+                if IgnoreShop == true then
+                    if v:GetAttribute("SHOP_ITEM") == true then
+                        continue
+                    end
+                end
+
+                if v:FindFirstChild("target") then
+                    if v.target.Value ~= nil then
+                        continue
+                    end
+                end
+
+                game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+            end
+       end
+
+       if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace:FindFirstChild("BuildingItemStorage"):GetChildren()) do
+                if SelectedCarParts[v.Name] == true then
+                    if IgnoreShop == true then
+                        if v:GetAttribute("SHOP_ITEM") == true then
+                            continue
+                        end
+                    end
+
+                    if v:FindFirstChild("target") then
+                        if v.target.Value ~= nil then
+                            continue
+                        end
+                    end
+
+                    game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+                end
+            end
+        end
+    end
+})
+
+Items_Bring:AddButton({
+    Text = "Bring Selected Food Items",
+    DoubleClick = false,
+    Tooltip = "Brings the selected food parts.",
+    Func = function()
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if SelectedFoodParts[v.Name] == true then
+                if IgnoreShop == true then
+                    if v:GetAttribute("SHOP_ITEM") == true then
+                        continue
+                    end
+                end
+
+                if v:FindFirstChild("target") then
+                    if v.target.Value ~= nil then
+                        continue
+                    end
+                end
+
+                game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+            end
+       end
+
+       if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace:FindFirstChild("BuildingItemStorage"):GetChildren()) do
+                if SelectedFoodParts[v.Name] == true then
+                    if IgnoreShop == true then
+                        if v:GetAttribute("SHOP_ITEM") == true then
+                            continue
+                        end
+                    end
+
+                    if v:FindFirstChild("target") then
+                        if v.target.Value ~= nil then
+                            continue
+                        end
+                    end
+
+                    game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+                end
+            end
+        end
+    end
+})
+
+Items_Bring:AddButton({
+    Text = "Bring Selected Misc Items",
+    DoubleClick = false,
+    Tooltip = "Brings the selected misc parts.",
+    Func = function()
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if SelectedMiscParts[v.Name] == true then
+                if IgnoreShop == true then
+                    if v:GetAttribute("SHOP_ITEM") == true then
+                        continue
+                    end
+                end
+
+                if v:FindFirstChild("target") then
+                    if v.target.Value ~= nil then
+                        continue
+                    end
+                end
+
+                game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+            end
+        end
+
+        if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace:FindFirstChild("BuildingItemStorage"):GetChildren()) do
+                if SelectedMiscParts[v.Name] == true then
+                    if IgnoreShop == true then
+                        if v:GetAttribute("SHOP_ITEM") == true then
+                            continue
+                        end
+                    end
+
+                    if v:FindFirstChild("target") then
+                        if v.target.Value ~= nil then
+                            continue
+                        end
+                    end
+
+                    game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+                end
+            end
+        end
+    end
+})
+
+Items_Bring:AddButton({
+    Text = "Bring Selected Weapon Items",
+    DoubleClick = false,
+    Tooltip = "Brings the selected weapon parts.",
+    Func = function()
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if SelectedWeaponParts[v.Name] == true then
+                if IgnoreShop == true then
+                    if v:GetAttribute("SHOP_ITEM") == true then
+                        continue
+                    end
+                end
+
+                if v:FindFirstChild("target") then
+                    if v.target.Value ~= nil then
+                        continue
+                    end
+                end
+
+                game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+            end
+       end
+
+       if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace:FindFirstChild("BuildingItemStorage"):GetChildren()) do
+                if SelectedWeaponParts[v.Name] == true then
+                    if IgnoreShop == true then
+                        if v:GetAttribute("SHOP_ITEM") == true then
+                            continue
+                        end
+                    end
+
+                    if v:FindFirstChild("target") then
+                        if v.target.Value ~= nil then
+                            continue
+                        end
+                    end
+
+                    game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+                end
+            end
+        end
+    end
+})
+
+Items_BringOther:AddButton({
+    Text = "Bring All Comics",
+    DoubleClick = false,
+    Tooltip = "Brings all found comics.",
+    Func = function()
+        local ComicFound = false
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if string.find(v.Name,"Comic") then
+                ComicFound = true
+                game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+            end
+        end
+
+        if not ComicFound then
+            Library:Notify("No comics found.", 7.5)
+        end
+    end
+})
+
+Items_BringOther:AddButton({
+    Text = "Bring All Items",
+    DoubleClick = false,
+    Tooltip = "Brings most of all found items.",
+    Func = function()
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if v:GetAttribute("PickupSound") or v:FindFirstChild("chance") then
+                if v:FindFirstChild("target") then
+                    if v.target.Value ~= nil then
+                        print("Ignored")
+                        continue
+                    end
+                end
+
+                game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+            end
+        end
+
+        if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace.BuildingItemStorage:GetChildren()) do
+                if v:GetAttribute("PickupSound") or v:FindFirstChild("chance") then
+                    if v:FindFirstChild("target") then
+                        if v.target.Value ~= nil then
+                            print("Ignored")
+                            continue
+                        end
+                    end
+
+                    game:GetService("ReplicatedStorage").teleport:FireServer(v,Player.Character:GetPivot().Position + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)
+                end
+            end
+        end
+    end
+})
+
+
+local PlayerList = {}
+for i,v in pairs(game.Players:GetPlayers()) do
+    table.insert(PlayerList,v.Name)
+end
+local SelectedPlayer = game.Players.LocalPlayer.Name
+local PlayersDropdown = Trolling_Target:AddDropdown('Players', {
+    Values = PlayerList,
+    Default = game.Players.LocalPlayer.Name,
+    Multi = false, 
+    Text = '',   
+    Tooltip = nil, 
+    Callback = function(option)
+        SelectedPlayer = tostring(option)
+    end
+})
+
+game.Players.PlayerAdded:Connect(function()
+    wait(1)
+    PlayerList = {}
+    for i,v in pairs(game.Players:GetChildren()) do table.insert(PlayerList,v.Name) end
+    PlayersDropdown:SetValues(PlayerList)
+end)
+
+game.Players.PlayerRemoving:Connect(function()
+    wait(1)
+    PlayerList = {}
+    for i,v in pairs(game.Players:GetChildren()) do table.insert(PlayerList,v.Name) end
+    PlayersDropdown:SetValues(PlayerList)
+end)
+
+Trolling_Target:AddButton({
+    Text = "Bring Selected",
+    DoubleClick = false,
+    Tooltip = "Brings the selected player.",
+    Func = function()
+        local FoundPlayer = game.Players:FindFirstChild(SelectedPlayer)
+
+        if FoundPlayer then
+           position(FoundPlayer.Character,Player.Character:GetPivot() + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)       
+        else
+            print("Player not found...")
+            print(SelectedPlayer)
+        end
+    end
+})
+
+Trolling_Target:AddButton({
+    Text = "Kill Selected",
+    DoubleClick = false,
+    Tooltip = "Kills the selected player.",
+    Func = function()
+        local FoundPlayer = game.Players:FindFirstChild(SelectedPlayer)
+
+        if FoundPlayer then
+            game:GetService("ReplicatedStorage"):WaitForChild("drag"):InvokeServer(FoundPlayer.Character.HumanoidRootPart,true)
+
+            --while not isnetworkowner(FoundPlayer.Character.HumanoidRootPart) do wait() end
+            --wait(0.25)
+
+            wait(0.5)
+
+            FoundPlayer.Character.Humanoid.Health = 0
+
+            wait(0.3)
+
+            game:GetService("ReplicatedStorage"):WaitForChild("drag"):InvokeServer(FoundPlayer.Character.HumanoidRootPart,false,0,Vector3.new(0,0,0))
+        else
+            print("Player not found...")
+            print(SelectedPlayer)
+        end
+    end
+})
+
+
+Trolling_Target:AddButton({
+    Text = "Invisible Selected",
+    DoubleClick = false,
+    Tooltip = "Makes the selected player invisible.",
+    Func = function()
+        local FoundPlayer = game.Players:FindFirstChild(SelectedPlayer)
+
+        if FoundPlayer then
+            local args = {
+                [1] = game:GetService("ReplicatedStorage").Assets.RareItems["180"].Raygun,
+                [2] = FoundPlayer.Character.Head.Position,
+                [3] = FoundPlayer.Character.Head
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_CustomHit"):FireServer(unpack(args))
+        else
+            print("Player not found...")
+            print(SelectedPlayer)
+        end
+    end
+})
+
+Trolling_Target:AddButton({
+    Text = "Teleport Mutants",
+    DoubleClick = false,
+    Tooltip = "Teleports mutants to selected.",
+    Func = function()
+        local FoundPlayer = game.Players:FindFirstChild(SelectedPlayer)
+
+        if FoundPlayer then
+            local MutantsFound = false
+
+            for i,v in pairs(game.Workspace:GetChildren()) do
+                if v.Name == "mutant" then
+                    local hum = v:FindFirstChildWhichIsA("Humanoid")
+
+                    if hum then
+                        MutantsFound = true
+                        position(v,FoundPlayer.Character:GetPivot())
+                    end
+                end
+            end
+
+            if not MutantsFound then
+                Library:Notify("No mutants found make sure u are close to mutants!", 7.5)
+            else
+                Library:Notify("Mutants brought to player!", 7.5)
+            end
+        else
+            print("Player not found...")
+            print(SelectedPlayer)
+        end
+    end
+})
+
+
+Trolling_AllPlayers:AddButton({
+    Text = "Bring All",
+    DoubleClick = false,
+    Tooltip = "Brings everyone.",
+    Func = function()
+        for i,v in pairs(game.Players:GetChildren()) do
+            if v ~= Player then
+                if (v.Character) then
+                    position(v.Character,Player.Character:GetPivot() + Player.Character.HumanoidRootPart.CFrame.LookVector * 5)  
+                end
+            end
+        end   
+    end
+})
+
+Trolling_AllPlayers:AddButton({
+    Text = "Kill All",
+    DoubleClick = false,
+    Tooltip = "Kills everyone.",
+    Func = function()
+        for i,v in pairs(game.Players:GetChildren()) do
+            if v ~= Player then
+                if (v.Character) and v.Character:FindFirstChild("HumanoidRootPart") then
+                    game:GetService("ReplicatedStorage"):WaitForChild("drag"):InvokeServer(v.Character.HumanoidRootPart,true)
+                    wait(0.5)
+                    v.Character.Humanoid.Health = 0
+                    wait(0.3)
+                    game:GetService("ReplicatedStorage"):WaitForChild("drag"):InvokeServer(v.Character.HumanoidRootPart,false,0,Vector3.new(0,0,0))
+                end
+            end
+        end 
+    end
+})
+
+Trolling_AllPlayers:AddButton({
+    Text = "Invisible All",
+    DoubleClick = false,
+    Tooltip = "Makes everyone invisible.",
+    Func = function()
+        for i,v in pairs(game.Players:GetChildren()) do
+            if v ~= Player then
+                if (v.Character) and v.Character:FindFirstChild("Head") then
+                    local args = {
+                        [1] = game:GetService("ReplicatedStorage").Assets.RareItems["180"].Raygun,
+                        [2] = v.Character.Head.Position,
+                        [3] = v.Character.Head
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_CustomHit"):FireServer(unpack(args))
+                end
+            end
+        end 
+    end
+})
+
+local CapFarness = 1
+Self_Usefull:AddToggle('CFrameSpeed', {
+    Text = 'Farm Sell Mutants',
+    Default = false,
+    Tooltip = "Dusty map only for now.",
+    Callback = function(Value)
+        FarmCaps = Value
+
+        if FarmCaps == true then
+            local SellPlace = game.Workspace.buildings:FindFirstChild("Shop")
+
+            if not SellPlace then
+                game:GetService("ReplicatedStorage").spawnbuilding:FireServer(
+                    game.ReplicatedStorage.buldings.Shop,
+                    CFrame.new(7.2227726, 6.85937357, 7855.18604, 0.0443737768, 8.07613603e-08, 0.999014974, -5.44594485e-08, 1, -7.84220333e-08, -0.999014974, -5.0925923e-08, 0.0443737768) - Vector3.new(0,5,0)
+                )
+                SellPlace = game.Workspace.buildings:WaitForChild("Shop")
+            else
+                print("Shop already found!")
+            end
+
+            task.spawn(function()
+                while FarmCaps == true do
+                    task.wait()
+                    if (Player.Character) and Player.Character:FindFirstChild("HumanoidRootPart") then
+                        Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+                    end
+                end
+            end)
+    
+            while FarmCaps == true do
+                task.wait()
+                Player.Character:PivotTo(workspace.models.roads:WaitForChild(tostring(CapFarness)):GetPivot() + Vector3.new(0,5,0)) --Teleports farther
+
+                CapFarness = CapFarness + 1
+
+                wait(0.2)
+
+                local CountedMutants = 0
+                for i,v in pairs(game.Workspace:GetChildren()) do
+                    if v.Name == "mutant" then
+                        CountedMutants = CountedMutants + 1
+                        position(v,Player.Character:GetPivot() + Player.Character.HumanoidRootPart.CFrame.RightVector * 40)
+                    end
+                end
+                
+
+                if CountedMutants > 4 then
+                    for i,v in pairs(game.Workspace:GetChildren()) do
+                        if v.Name == "mutant" then
+                            CountedMutants = CountedMutants + 1
+                            position(v,SellPlace:FindFirstChild("SELL_HITBOX_ESTIMATOR",true):GetPivot())
+                        end
+                    end
+                    Player.Character:PivotTo(SellPlace:GetPivot() + Vector3.new(0,10,0))
+
+                    for i=0,10,1 do
+                        for i,v in pairs(game.Workspace:GetChildren()) do
+                            if v.Name == "mutant" then
+                                CountedMutants = CountedMutants + 1
+                                position(v,SellPlace:FindFirstChild("SELL_HITBOX_ESTIMATOR",true):GetPivot() - Vector3.new(0,1.5,0))
+                            end
+                        end
+                        wait(0.15)
+                        SellPlace.ShopPart.SELL_LEVER.Handle.Activate:FireServer()
+                    end
+
+                    wait(2)
+
+                    for i,v in pairs(game.Workspace:GetChildren()) do
+                        if v.Name == "5Pile" or v.Name == "BottleCap" or v.Name == "10pile" or v.Name == "15Pile" or v.Name == "20pile" or v.Name == "5stack" then
+                            local modeltodelete = v
+                
+                            for i,v in pairs(v:GetDescendants()) do
+                                if v:IsA("MeshPart") then
+                                    game:GetService("ReplicatedStorage").Network.TakeBottleCap:FireServer(v)
+                                end
+                            end                
+                            modeltodelete:Destroy()
+                        end
+                    end
+                    Library:Notify("Collected caps!", 3)
+
+                end
+
+                wait(0.1)
+            end
+        end
+    end
+})
+
+Self_Usefull:AddToggle('CFrameSpeed', {
+    Text = 'Kill Enemys',
+    Default = false,
+    Tooltip = "kills enemys automatticly!",
+    Callback = function(Value)
+        AutoKillMutants = Value
+
+        while AutoKillMutants do
+            wait(0.25)
+
+            for i,v in pairs(game.Workspace:GetChildren()) do
+                if (v.Name:lower() == "mutant" or v.Name:lower() == "sprinter" or v.Name:lower() == "buff") and v:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+                    print("Killed!")
+                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_RequestDamage"):FireServer(game.ReplicatedStorage.Assets.Weapons.GOLDAK47,v)   
+                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_RequestDamage"):FireServer(game.ReplicatedStorage.Assets.Weapons.GOLDAK47,v)              
+                end
+            end
+
+            if game.Workspace:FindFirstChild("BuildingItemStorage") then
+                for i,v in pairs(game.Workspace.BuildingItemStorage:GetChildren()) do
+                    if (v:FindFirstChildWhichIsA("Humanoid")) and v:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+                        print("Killed!")
+                        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_RequestDamage"):FireServer(game.ReplicatedStorage.Assets.Weapons.GOLDAK47,v)   
+                        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GunFramework_RequestDamage"):FireServer(game.ReplicatedStorage.Assets.Weapons.GOLDAK47,v)              
+                    end
+                end
+            end
+        end
+    end
+})
+
+Self_Usefull:AddButton({
+    Text = "Bring Dead Enemys",
+    DoubleClick = false,
+    Tooltip = "Brings dead enemys to u!",
+    Func = function()
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if (v.Name:lower() == "mutant" or v.Name:lower() == "sprinter" or v.Name:lower() == "buff") and v:FindFirstChildWhichIsA("Humanoid").Health == 0 then
+                position(v,Player.Character:GetPivot())
+            end
+        end
+
+        if game.Workspace:FindFirstChild("BuildingItemStorage") then
+            for i,v in pairs(game.Workspace.BuildingItemStorage:GetChildren()) do
+                if (v:FindFirstChildWhichIsA("Humanoid")) and v:FindFirstChildWhichIsA("Humanoid").Health == 0 then
+                    position(v,Player.Character:GetPivot())
+                end
+            end
+        end
+    end
+})
+
+Self_Usefull:AddButton({
+    Text = "Eat Food",
+    DoubleClick = false,
+    Tooltip = "Can only be used a couple times!",
+    Func = function()
+        for i,v in pairs(game:GetService("ReplicatedStorage").items:GetChildren()) do
+            if v:FindFirstChild("hunger") then    
+                game:GetService("ReplicatedStorage"):WaitForChild("eat"):InvokeServer(v)
+                Library:Notify("Found something to eat!", 3)
+                return
+            end
+        end
+
+        for i,v in pairs(game.Workspace:GetChildren()) do
+            if v:FindFirstChild("hunger") then    
+                game:GetService("ReplicatedStorage"):WaitForChild("eat"):InvokeServer(v)
+                Library:Notify("Found something to eat!", 3)
+                return
+            end
+        end
+
+        Library:Notify("No food found.", 3)
+    end
+})
+
